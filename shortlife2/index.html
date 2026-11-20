@@ -2,23 +2,125 @@
 <html lang="en">
 
 <head>
+<script>try{Object.defineProperty(document,"referrer",{value:location.href,configurable:true});}catch(e){}</script>
+<script>
+/* __offlineNetGuard — auto-patched: chan request toi ad/analytics ke ca khi chung nam trong wasm */
+(function () {
+  var HOSTS = ["google-analytics.com","www.google-analytics.com","googletagmanager.com","www.googletagmanager.com","doubleclick.net","cm.g.doubleclick.net","securepubads.g.doubleclick.net","pagead2.googlesyndication.com","imasdk.googleapis.com","s0.2mdn.net","adtrafficquality.google","ep2.adtrafficquality.google","firestore.googleapis.com","config.uca.cloud.unity3d.com","cdp.cloud.unity3d.com","connect.facebook.net","analytics.facebook.com","c.amazon-adsystem.com","config.aps.amazon-adsystem.com","amplitude.com","api.amplitude.com","mixpanel.com","api.mixpanel.com","hotjar.com","script.hotjar.com","clarity.ms","c.clarity.ms","f.clarity.ms","sentry.io","browser.sentry-cdn.com","analytics.tiktok.com","static.cloudflareinsights.com","adinplay.com","api.adinplay.com","mc.yandex.ru","mc.yandex.com","an.yandex.ru","a.poki-cdn.com","devs-api.poki.com","geo.poki.io","api.poki.com","fafvertizing.crazygames.com","mafvertizing.crazygames.com","criteo.com","static.criteo.net","gum.criteo.com","rubiconproject.com","fastlane.rubiconproject.com","3lift.com","tlx.3lift.com","openx.net","openxcdn.net","oa.openxcdn.net","adnxs.com","ib.adnxs.com","pubmatic.com","hb.pubmatic.com","taboola.com","trc.taboola.com","outbrain.com","media.net","contextual.media.net","hadron.ad.gt","id.hadron.ad.gt","ats-wrapper.privacymanager.io","invstatic101.creativecdn.com","qsearch-a.akamaihd.net","cdn.ampproject.org","creativecdn.com","m.igroutka.ru","gameanalytics.com","api.gameanalytics.com","unityads.unity3d.com","auction.unityads.unity3d.com","cdn.unityads.unity3d.com","publisher-config.unityads.unity3d.com","stats.unity3d.com","perf-events.cloud.unity3d.com","adservice.google.com","pagead2.googleadservices.com","leveldata.poki.io","t.poki.io","itch.io","static.itch.io","playfabapi.com","logs-01.loggly.com"];
+  function blocked(u) {
+    try {
+      var h = new URL(String(u), location.href).hostname.toLowerCase();
+      for (var i = 0; i < HOSTS.length; i++) {
+        var b = HOSTS[i];
+        if (h === b || h.endsWith("." + b)) return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+  var _fetch = window.fetch;
+  if (_fetch) window.fetch = function (input, init) {
+    var u = (input && input.url) || input;
+    if (blocked(u)) return Promise.resolve(new Response(null, { status: 204, statusText: "blocked-offline" }));
+    return _fetch.apply(this, arguments);
+  };
+  var _open = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function (m, u) { this.__blk = blocked(u); return _open.apply(this, arguments); };
+  var _send = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__blk) {
+      var self = this;
+      setTimeout(function () {
+        try {
+          Object.defineProperty(self, "readyState", { value: 4, configurable: true });
+          Object.defineProperty(self, "status", { value: 204, configurable: true });
+          Object.defineProperty(self, "responseText", { value: "", configurable: true });
+          self.onreadystatechange && self.onreadystatechange();
+          self.onload && self.onload();
+        } catch (e) {}
+      }, 0);
+      return;
+    }
+    return _send.apply(this, arguments);
+  };
+  if (navigator.sendBeacon) {
+    var _b = navigator.sendBeacon.bind(navigator);
+    navigator.sendBeacon = function (u) { return blocked(u) ? true : _b.apply(null, arguments); };
+  }
+  var _WS = window.WebSocket;
+  if (_WS) window.WebSocket = function (u, pr) {
+    if (blocked(u)) { try { return new _WS("ws://localhost:1"); } catch (e) {} }
+    return pr === undefined ? new _WS(u) : new _WS(u, pr);
+  };
+})();
+</script>
     <meta charset="utf-8" />
     <meta http-equiv="x-ua-compatible" content="ie=edge">
     <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />
-    <link rel="icon" href="data:," />
     <link rel="stylesheet" href="assets/css/app.css" type="text/css" />
-    <title>Shortlife</title>
-</head>
+    <title>
+        Shortlife
+    </title>
+    <script>
+/* PokiSDK offline mock — auto-patched for local play */
+(function () {
+  function noop() {}
+  function resolved() { return Promise.resolve(); }
+  window.PokiSDK = {
+    init: resolved,
+    initWithVideoHB: resolved,
+    gameLoadingStart: noop,
+    gameLoadingProgress: noop,
+    gameLoadingFinished: noop,
+    gameInteractive: noop,
+    gameplayStart: noop,
+    gameplayStop: noop,
+    roundStart: noop,
+    roundEnd: noop,
+    happyTime: noop,
+    commercialBreak: resolved,
+    rewardedBreak: function () { return Promise.resolve(true); },
+    getUser: function () { return Promise.resolve(null); },   // chưa đăng nhập Poki
+    getToken: function () { return Promise.resolve(null); },
+    login: function () { return Promise.resolve(null); },
+    measure: noop,            // wrapper C3 (skymen_pokiSDK) gọi mỗi sự kiện analytics
+    movePill: noop,
+    openExternalLink: noop,
+    displayAd: noop,
+    destroyAd: noop,
+    muteAd: noop,
+    disableProgrammatic: noop,
+    setDebug: noop,
+    customEvent: noop,
+    logError: noop,
+    captureError: noop,
+    sendHighscore: noop,
+    setPlayerAge: noop,
+    togglePlayerAdvertisingConsent: noop,
+    setDebugTouchOverlayController: noop,
+    getLeaderboard: resolved,
+    getSharableURL: function () { return Promise.reject(new Error('offline')); },
+    shareableURL: function () { return Promise.reject(new Error('offline')); },
+    getURLParam: function (name) {
+      var m = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+      return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : '';
+    }
+  };
+})();
+</script>
+    </head>
 
 <body>
     <div id="content"></div>
     <div id="orientation"></div>
     <div id="loader"></div>
-    <script type="text/javascript" src="assets/box2dweb/nape.min.js"></script>
+    <script type="text/javascript" src="assets/box2dweb/nape.min.js">
+        var nape = "nape.min.js";
+    </script>
     <script type="text/javascript" src="assets/box2dweb/nape-debug-draw.min.js"></script>
     <script type="text/javascript" src="assets/box2dweb/jquery-3.1.1.min.js"></script>
     <script type="text/javascript" src="assets/box2dweb/easeljs-0.8.2.combined.js"></script>
-    <script type="text/javascript" src="shortlife.min.js?9e5e81ba25d819fbed74"></script>
-</body>
+<script type="text/javascript" src="shortlife.min.js?9e5e81ba25d819fbed74"></script>
+    <script type="text/javascript" src="lib/phaser-cachebuster.min.js"></script>
+    <script type="text/javascript" src="lib/phaser-super-storage.min.js"></script></body>
 
 </html>
