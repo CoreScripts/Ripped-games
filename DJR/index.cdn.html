@@ -5,38 +5,34 @@
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <meta name="viewport" content="user-scalable=no">
-        <base href="https://raw.githack.com/CoreScripts/Ripped-games/main/DJR/">
+        <base href="https://cdn.jsdelivr.net/gh/CoreScripts/Ripped-games@main/DJR/">
         <script>
-            // Resolve every game request against the CDN base, encoding spaces as %20.
+            // Every relative URL now resolves to jsDelivr. Encode spaces and load
+            // cross-origin images with CORS so canvas operations (tone changes,
+            // snapshots) don't fail on tainted bitmaps.
             (function () {
                 function encode(url) {
                     if (url && typeof url === 'object' && url.href) url = url.href;
                     return typeof url === 'string' ? url.replace(/ /g, '%20') : url;
                 }
-                var xhrOpen = XMLHttpRequest.prototype.open;
+                var open = XMLHttpRequest.prototype.open;
                 XMLHttpRequest.prototype.open = function () {
                     var args = Array.prototype.slice.call(arguments);
                     args[1] = encode(args[1]);
-                    return xhrOpen.apply(this, args);
+                    return open.apply(this, args);
                 };
-                // Cross-origin images must be loaded with CORS, or drawing them taints
-                // the bitmaps and breaks adjustTone()/snapshot() with getImageData errors.
-                var srcProp = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+                var src = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
                 Object.defineProperty(HTMLImageElement.prototype, 'src', {
-                    get: srcProp.get,
+                    get: src.get,
                     set: function (value) {
                         if (this.crossOrigin !== 'anonymous') this.crossOrigin = 'anonymous';
-                        srcProp.set.call(this, encode(value));
+                        src.set.call(this, encode(value));
                     }
                 });
                 if (window.fetch) {
                     var nativeFetch = window.fetch;
                     window.fetch = function (input, init) {
-                        if (input instanceof Request) {
-                            input = new Request(encode(input.url), input);
-                        } else {
-                            input = encode(input);
-                        }
+                        input = input instanceof Request ? new Request(encode(input.url), input) : encode(input);
                         return nativeFetch.call(this, input, init);
                     };
                 }

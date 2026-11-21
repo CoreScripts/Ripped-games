@@ -263,7 +263,23 @@ _.loadAllImages = function() {
     }
 };
 
-_.loadAllImages();
+// Load only after the database exists, so Decrypter.hasEncryptedImages is set.
+// Loading this early requests .png paths and caches a failed (empty) bitmap.
+_.preloadAfterBoot = function() {
+    if (window.$dataSystem) {
+        _.loadAllImages();
+    }
+};
+
+if (window.$dataSystem) {
+    _.preloadAfterBoot();
+} else {
+    var _SRD_MenuBackgrounds_bootStart = Scene_Boot.prototype.start;
+    Scene_Boot.prototype.start = function() {
+        _SRD_MenuBackgrounds_bootStart.apply(this, arguments);
+        _.preloadAfterBoot();
+    };
+}
 
 //-----------------------------------------------------------------------------
 // Scene_MenuBase
