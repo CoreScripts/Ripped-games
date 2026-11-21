@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+        <meta name="viewport" content="user-scalable=no">
+        <base href="https://raw.githack.com/CoreScripts/Ripped-games/main/DJR/">
+        <script>
+            // Resolve every game request against the CDN base, encoding spaces as %20.
+            (function () {
+                function encode(url) {
+                    if (url && typeof url === 'object' && url.href) url = url.href;
+                    return typeof url === 'string' ? url.replace(/ /g, '%20') : url;
+                }
+                var xhrOpen = XMLHttpRequest.prototype.open;
+                XMLHttpRequest.prototype.open = function () {
+                    var args = Array.prototype.slice.call(arguments);
+                    args[1] = encode(args[1]);
+                    return xhrOpen.apply(this, args);
+                };
+                // Cross-origin images must be loaded with CORS, or drawing them taints
+                // the bitmaps and breaks adjustTone()/snapshot() with getImageData errors.
+                var srcProp = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+                Object.defineProperty(HTMLImageElement.prototype, 'src', {
+                    get: srcProp.get,
+                    set: function (value) {
+                        if (this.crossOrigin !== 'anonymous') this.crossOrigin = 'anonymous';
+                        srcProp.set.call(this, encode(value));
+                    }
+                });
+                if (window.fetch) {
+                    var nativeFetch = window.fetch;
+                    window.fetch = function (input, init) {
+                        if (input instanceof Request) {
+                            input = new Request(encode(input.url), input);
+                        } else {
+                            input = encode(input);
+                        }
+                        return nativeFetch.call(this, input, init);
+                    };
+                }
+            })();
+        </script>
+        <link rel="icon" href="icon/icon.png?2" type="image/png">
+        <link rel="apple-touch-icon" href="icon/icon.png">
+        <link rel="stylesheet" type="text/css" href="fonts/gamefont.css">
+        <title>Dorm Janitor's Revenge</title>
+    </head>
+    <body style="background-color: black">
+        <script type="text/javascript" src="js/libs/pixi.js"></script>
+        <script type="text/javascript" src="js/libs/pixi-tilemap.js"></script>
+        <script type="text/javascript" src="js/libs/pixi-picture.js"></script>
+        <script type="text/javascript" src="js/libs/fpsmeter.js"></script>
+        <script type="text/javascript" src="js/libs/lz-string.js"></script>
+        <script type="text/javascript" src="js/libs/iphone-inline-video.browser.js"></script>
+        <script type="text/javascript" src="js/rpg_core.js"></script>
+        <script type="text/javascript" src="js/rpg_managers.js"></script>
+        <script type="text/javascript" src="js/rpg_objects.js"></script>
+        <script type="text/javascript" src="js/rpg_scenes.js"></script>
+        <script type="text/javascript" src="js/rpg_sprites.js"></script>
+        <script type="text/javascript" src="js/rpg_windows.js"></script>
+        <script type="text/javascript" src="js/plugins.js"></script>
+        <script type="text/javascript" src="js/main.js"></script>
+    </body>
+</html>

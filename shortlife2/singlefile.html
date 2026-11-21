@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<base href="https://raw.githack.com/CoreScripts/Ripped-games/main/shortlife2/">
+<meta charset="utf-8" />
+<meta http-equiv="x-ua-compatible" content="ie=edge">
+<meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, shrink-to-fit=no" />
+<link rel="stylesheet" href="assets/css/app.css" type="text/css" />
+<title>
+    Shortlife
+</title>
+<style>
+    html, body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        background: #000;
+        overflow: hidden;
+    }
+    #content {
+        position: fixed;
+        top: 0; right: 0; bottom: 0; left: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        background: #000;
+    }
+    #content canvas {
+        display: block;
+        margin: auto;
+        max-width: 100vw;
+        max-height: 100vh;
+        outline: none;
+        touch-action: none;
+        -ms-touch-action: none;
+    }
+    #orientation {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+    }
+    #loadingScreen {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #000;
+        color: #ccc;
+        font: 14px/1.4 Arial, Verdana, sans-serif;
+        letter-spacing: 1px;
+        opacity: 1;
+        transition: opacity .35s ease;
+        -webkit-user-select: none;
+        user-select: none;
+        touch-action: none;
+    }
+    #loadingScreen .loadTitle {
+        font-size: 22px;
+        margin-bottom: 14px;
+        color: #eee;
+        text-transform: uppercase;
+    }
+    #loadTrack {
+        width: 260px;
+        max-width: 70vw;
+        height: 10px;
+        border: 1px solid #444;
+        border-radius: 6px;
+        overflow: hidden;
+        background: #111;
+    }
+    #loadBar {
+        width: 0%;
+        height: 100%;
+        background: #d33;
+        transition: width .2s linear;
+    }
+    #loadPct {
+        margin-top: 10px;
+        font-size: 12px;
+        color: #888;
+    }
+</style>
+<script>try{Object.defineProperty(document,"referrer",{value:location.href,configurable:true});}catch(e){}</script>
+<script>
+/* offline net guard + URL space encoding + loading progress */
+(function () {
+  var HOSTS = ["google-analytics.com","www.google-analytics.com","googletagmanager.com","www.googletagmanager.com","doubleclick.net","cm.g.doubleclick.net","securepubads.g.doubleclick.net","pagead2.googlesyndication.com","imasdk.googleapis.com","s0.2mdn.net","adtrafficquality.google","ep2.adtrafficquality.google","firestore.googleapis.com","config.uca.cloud.unity3d.com","cdp.cloud.unity3d.com","connect.facebook.net","analytics.facebook.com","c.amazon-adsystem.com","config.aps.amazon-adsystem.com","amplitude.com","api.amplitude.com","mixpanel.com","api.mixpanel.com","hotjar.com","script.hotjar.com","clarity.ms","c.clarity.ms","f.clarity.ms","sentry.io","browser.sentry-cdn.com","analytics.tiktok.com","static.cloudflareinsights.com","adinplay.com","api.adinplay.com","mc.yandex.ru","mc.yandex.com","an.yandex.ru","a.poki-cdn.com","devs-api.poki.com","geo.poki.io","api.poki.com","fafvertizing.crazygames.com","mafvertizing.crazygames.com","criteo.com","static.criteo.net","gum.criteo.com","rubiconproject.com","fastlane.rubiconproject.com","3lift.com","tlx.3lift.com","openx.net","openxcdn.net","oa.openxcdn.net","adnxs.com","ib.adnxs.com","pubmatic.com","hb.pubmatic.com","taboola.com","trc.taboola.com","outbrain.com","media.net","contextual.media.net","hadron.ad.gt","id.hadron.ad.gt","ats-wrapper.privacymanager.io","invstatic101.creativecdn.com","qsearch-a.akamaihd.net","cdn.ampproject.org","creativecdn.com","m.igroutka.ru","gameanalytics.com","api.gameanalytics.com","unityads.unity3d.com","auction.unityads.unity3d.com","cdn.unityads.unity3d.com","publisher-config.unityads.unity3d.com","stats.unity3d.com","perf-events.cloud.unity3d.com","adservice.google.com","pagead2.googleadservices.com","leveldata.poki.io","t.poki.io","itch.io","static.itch.io","playfabapi.com","logs-01.loggly.com"];
+
+  var B = window.__boot = { scripts: 0, assets: 0, last: Date.now() };
+
+  function enc(u) {
+    try {
+      if (typeof u === "string" && u.indexOf(" ") !== -1 && u.indexOf("data:") !== 0 && u.indexOf("blob:") !== 0) {
+        u = u.replace(/ /g, "%20");
+      }
+    } catch (e) {}
+    return u;
+  }
+  window.__encUrl = enc;
+
+  function isAsset(u) {
+    return typeof u === "string" && /(^|[\/\\])assets\//.test(u);
+  }
+
+  function isCrossOrigin(u) {
+    try {
+      if (typeof u !== "string") return false;
+      if (/^(data|blob):/i.test(u)) return false;
+      var abs = new URL(u, document.baseURI);
+      if (abs.protocol !== "http:" && abs.protocol !== "https:") return false;
+      return abs.origin !== location.origin;
+    } catch (e) {}
+    return false;
+  }
+
+  function blocked(u) {
+    try {
+      var h = new URL(String(u), location.href).hostname.toLowerCase();
+      for (var i = 0; i < HOSTS.length; i++) {
+        var b = HOSTS[i];
+        if (h === b || h.endsWith("." + b)) return true;
+      }
+    } catch (e) {}
+    return false;
+  }
+
+  /* ---- fetch ---- */
+  var _fetch = window.fetch;
+  if (_fetch) window.fetch = function (input, init) {
+    var u = (input && input.url) || input;
+    u = enc(u);
+    if (blocked(u)) return Promise.resolve(new Response(null, { status: 204, statusText: "blocked" }));
+    if (isAsset(u)) {
+      B.last = Date.now();
+      return _fetch.call(this, u, init).then(function (r) {
+        B.assets++; B.last = Date.now();
+        return r;
+      }, function (e) {
+        B.assets++; B.last = Date.now();
+        throw e;
+      });
+    }
+    return _fetch.call(this, u, init);
+  };
+
+  /* ---- XHR ---- */
+  var _open = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function (m, u) {
+    var args = Array.prototype.slice.call(arguments);
+    args[1] = enc(args[1]);
+    this.__blk = blocked(args[1]);
+    if (!this.__blk && isAsset(args[1])) {
+      B.last = Date.now();
+      if (!this.__tracked) {
+        this.__tracked = true;
+        this.addEventListener("loadend", function () { B.assets++; B.last = Date.now(); });
+      }
+    }
+    return _open.apply(this, args);
+  };
+  var _send = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.send = function () {
+    if (this.__blk) {
+      var self = this;
+      setTimeout(function () {
+        try {
+          Object.defineProperty(self, "readyState", { value: 4, configurable: true });
+          Object.defineProperty(self, "status", { value: 204, configurable: true });
+          Object.defineProperty(self, "responseText", { value: "", configurable: true });
+          self.onreadystatechange && self.onreadystatechange();
+          self.onload && self.onload();
+        } catch (e) {}
+      }, 0);
+      return;
+    }
+    return _send.apply(this, arguments);
+  };
+
+  /* ---- beacon / websocket ---- */
+  if (navigator.sendBeacon) {
+    var _b = navigator.sendBeacon.bind(navigator);
+    navigator.sendBeacon = function (u) { return blocked(u) ? true : _b.apply(null, arguments); };
+  }
+  var _WS = window.WebSocket;
+  if (_WS) window.WebSocket = function (u, pr) {
+    if (blocked(u)) { try { return new _WS("ws://localhost:1"); } catch (e) {} }
+    return pr === undefined ? new _WS(u) : new _WS(u, pr);
+  };
+
+  /* ---- element src / href (spaces + asset counting) ---- */
+  function hookProp(proto, prop) {
+    try {
+      if (!proto) return;
+      var d = Object.getOwnPropertyDescriptor(proto, prop);
+      if (!d || !d.set || !d.configurable) return;
+      Object.defineProperty(proto, prop, {
+        configurable: true,
+        enumerable: d.enumerable,
+        get: function () { return d.get.call(this); },
+        set: function (v) {
+          try {
+            v = enc(v);
+            /* WebGL textures from another origin need a CORS request */
+            if (isCrossOrigin(v) && this.tagName === "IMG" && !this.crossOrigin) {
+              this.crossOrigin = "anonymous";
+            }
+            if (isAsset(v) && !this.__tracked) {
+              this.__tracked = true;
+              B.last = Date.now();
+              var done = function () { B.assets++; B.last = Date.now(); };
+              this.addEventListener("load", done);
+              this.addEventListener("error", done);
+            }
+          } catch (e) {}
+          return d.set.call(this, v);
+        }
+      });
+    } catch (e) {}
+  }
+  hookProp(window.HTMLImageElement && HTMLImageElement.prototype, "src");
+  hookProp(window.HTMLMediaElement && HTMLMediaElement.prototype, "src");
+
+  var _setAttr = Element.prototype.setAttribute;
+  Element.prototype.setAttribute = function (name, value) {
+    try {
+      var n = String(name).toLowerCase();
+      if (n === "src" || n === "href") value = enc(value);
+      if (n === "src" && this.tagName === "IMG" && isCrossOrigin(value) && !this.crossOrigin) {
+        this.crossOrigin = "anonymous";
+      }
+    } catch (e) {}
+    return _setAttr.call(this, name, value);
+  };
+
+  /* ---- script load progress ---- */
+  document.addEventListener("load", function (e) {
+    var t = e.target;
+    if (t && t.tagName === "SCRIPT") { B.scripts++; B.last = Date.now(); }
+  }, true);
+})();
+</script>
+<script>
+/* PokiSDK offline mock */
+(function () {
+  function noop() {}
+  function resolved() { return Promise.resolve(); }
+  window.PokiSDK = {
+    init: resolved,
+    initWithVideoHB: resolved,
+    gameLoadingStart: noop,
+    gameLoadingProgress: function (p) {
+      if (window.__boot) window.__boot.gameProgress = Math.max(window.__boot.gameProgress || 0, p || 0);
+    },
+    gameLoadingFinished: function () {
+      if (window.__boot) window.__boot.gameReady = true;
+    },
+    gameInteractive: noop,
+    gameplayStart: noop,
+    gameplayStop: noop,
+    roundStart: noop,
+    roundEnd: noop,
+    happyTime: noop,
+    commercialBreak: resolved,
+    rewardedBreak: function () { return Promise.resolve(true); },
+    getUser: function () { return Promise.resolve(null); },
+    getToken: function () { return Promise.resolve(null); },
+    login: function () { return Promise.resolve(null); },
+    measure: noop,
+    movePill: noop,
+    openExternalLink: noop,
+    displayAd: noop,
+    destroyAd: noop,
+    muteAd: noop,
+    disableProgrammatic: noop,
+    setDebug: noop,
+    customEvent: noop,
+    logError: noop,
+    captureError: noop,
+    sendHighscore: noop,
+    setPlayerAge: noop,
+    togglePlayerAdvertisingConsent: noop,
+    setDebugTouchOverlayController: noop,
+    getLeaderboard: resolved,
+    getSharableURL: function () { return Promise.reject(new Error('offline')); },
+    shareableURL: function () { return Promise.reject(new Error('offline')); },
+    getURLParam: function (name) {
+      var m = new RegExp('[?&]' + name + '=([^&]*)').exec(window.location.search);
+      return m ? decodeURIComponent(m[1].replace(/\+/g, ' ')) : '';
+    }
+  };
+})();
+</script>
+</head>
+
+<body>
+    <div id="content"></div>
+    <div id="orientation"></div>
+    <div id="loader"></div>
+    <div id="loadingScreen">
+        <div class="loadTitle">Shortlife</div>
+        <div id="loadTrack"><div id="loadBar"></div></div>
+        <div id="loadPct">0%</div>
+    </div>
+    <script type="text/javascript" src="assets/box2dweb/nape.min.js">
+        var nape = "nape.min.js";
+    </script>
+    <script type="text/javascript" src="assets/box2dweb/nape-debug-draw.min.js"></script>
+    <script type="text/javascript" src="assets/box2dweb/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="assets/box2dweb/easeljs-0.8.2.combined.js"></script>
+<script type="text/javascript" src="shortlife.min.js?9e5e81ba25d819fbed74"></script>
+    <script type="text/javascript" src="lib/phaser-cachebuster.min.js"></script>
+    <script type="text/javascript" src="lib/phaser-super-storage.min.js"></script>
+    <script>
+    /* loading bar driven by script + asset loading */
+    (function () {
+        var B = window.__boot || { scripts: 0, assets: 0, last: Date.now() };
+        var screen = document.getElementById('loadingScreen');
+        var bar = document.getElementById('loadBar');
+        var pctEl = document.getElementById('loadPct');
+        var SCRIPT_TOTAL = 7;
+        var EXPECTED_ASSETS = 96;
+        var start = Date.now();
+        var finished = false;
+        var shown = -1;
+
+        function paint(p) {
+            p = Math.max(0, Math.min(100, Math.round(p)));
+            if (p === shown) return;
+            shown = p;
+            bar.style.width = p + '%';
+            pctEl.textContent = p + '%';
+        }
+
+        function finish() {
+            if (finished) return;
+            finished = true;
+            paint(100);
+            setTimeout(function () {
+                screen.style.opacity = '0';
+                setTimeout(function () { screen.style.display = 'none'; }, 400);
+            }, 250);
+            clearInterval(timer);
+        }
+
+        var timer = setInterval(function () {
+            if (finished) return;
+            var sr = Math.min(1, B.scripts / SCRIPT_TOTAL);
+            var ar = Math.min(1, B.assets / EXPECTED_ASSETS);
+            var p = 6 + 9 * sr + 80 * ar;
+            if (p > 95) p = 95;
+
+            var idle = Date.now() - (B.last || start);
+            var hasCanvas = !!document.querySelector('#content canvas');
+            if (B.gameReady && hasCanvas) p = 100;
+            else if (hasCanvas && B.assets >= 60 && idle > 4000) p = 100;
+            if (Date.now() - start > 75000) p = 100;
+
+            if (p >= 100) finish();
+            else paint(p);
+        }, 150);
+    })();
+
+    /* basic touch-to-mouse support (fallback when the game's own touch input is off) */
+    (function () {
+        var nativeMouse = false;
+        document.addEventListener('mousedown', function (e) {
+            if (e.isTrusted) nativeMouse = true;
+        }, true);
+
+        /* let Phaser's own touch input win when it is active */
+        try {
+            if (window.Phaser && Phaser.Touch && Phaser.Touch.prototype.onTouchStart) {
+                var origTouchStart = Phaser.Touch.prototype.onTouchStart;
+                Phaser.Touch.prototype.onTouchStart = function () {
+                    window.__handledTouch = true;
+                    setTimeout(function () { window.__handledTouch = false; }, 0);
+                    return origTouchStart.apply(this, arguments);
+                };
+            }
+        } catch (e) {}
+
+        function targetAt(t) {
+            var canvas = document.querySelector('#content canvas');
+            if (canvas) return canvas;
+            return document.elementFromPoint(t.clientX, t.clientY) ||
+                document.getElementById('content') || document.body;
+        }
+        function synth(type, t, target) {
+            try {
+                var ev = new MouseEvent(type, {
+                    bubbles: true,
+                    cancelable: true,
+                    view: window,
+                    detail: 1,
+                    clientX: t.clientX,
+                    clientY: t.clientY,
+                    screenX: t.screenX,
+                    screenY: t.screenY,
+                    button: 0,
+                    buttons: type === 'mouseup' ? 0 : 1
+                });
+                target.dispatchEvent(ev);
+            } catch (e) {}
+        }
+
+        var dragTarget = null;
+
+        document.addEventListener('touchstart', function (e) {
+            if (window.__handledTouch || nativeMouse || !e.changedTouches || !e.changedTouches.length) return;
+            e.preventDefault();
+            var t = e.changedTouches[0];
+            dragTarget = targetAt(t);
+            if (dragTarget && dragTarget.focus) { try { dragTarget.focus(); } catch (err) {} }
+            synth('mousedown', t, dragTarget);
+        }, { passive: false });
+
+        document.addEventListener('touchmove', function (e) {
+            if (!dragTarget || nativeMouse || !e.changedTouches || !e.changedTouches.length) return;
+            e.preventDefault();
+            synth('mousemove', e.changedTouches[0], dragTarget);
+        }, { passive: false });
+
+        function endTouch(e) {
+            if (!dragTarget || nativeMouse || !e.changedTouches || !e.changedTouches.length) return;
+            e.preventDefault();
+            synth('mouseup', e.changedTouches[0], dragTarget);
+            dragTarget = null;
+        }
+        document.addEventListener('touchend', endTouch, { passive: false });
+        document.addEventListener('touchcancel', endTouch, { passive: false });
+    })();
+    </script>
+</body>
+
+</html>
