@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>SAD SATAN</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no">
+<meta name="generator" content="Scirra Construct">
+
+<!-- All relative game files are loaded from the GitHub repository through jsDelivr. -->
+<base href="https://cdn.jsdelivr.net/gh/CoreScripts/Ripped-games@main/sadsatan/">
+<link rel="manifest" href="appmanifest.json">
+<link rel="apple-touch-icon" sizes="242x242" href="icons/icon-256.png">
+<link rel="apple-touch-icon" sizes="481x481" href="icons/icon-512.png">
+<link rel="icon" type="image/png" href="icons/icon-512.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<noscript>
+    <div id="notSupportedWrap">
+        <h2 id="notSupportedTitle">This content requires JavaScript</h2>
+        <p class="notSupportedMessage">JavaScript appears to be disabled. Please enable it to view this content.</p>
+    </div>
+</noscript>
+
+<script src="https://cdn.jsdelivr.net/gh/CoreScripts/Ripped-games@main/sadsatan/scripts/modernjscheck.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/CoreScripts/Ripped-games@main/sadsatan/scripts/supportcheck.js"></script>
+<script>
+    (() => {
+        const activeTouches = new Map();
+
+        function dispatchPointer(type, touch, target) {
+            if (typeof PointerEvent !== "function") return;
+
+            target.dispatchEvent(new PointerEvent(type, {
+                bubbles: true,
+                cancelable: true,
+                pointerId: touch.identifier,
+                pointerType: "mouse",
+                isPrimary: activeTouches.size === 0,
+                button: 0,
+                buttons: type === "pointerup" ? 0 : 1,
+                clientX: touch.clientX,
+                clientY: touch.clientY,
+                pageX: touch.pageX,
+                pageY: touch.pageY,
+                pressure: type === "pointerup" ? 0 : 0.5
+            }));
+        }
+
+        window.addEventListener("touchstart", event => {
+            for (const touch of event.changedTouches) {
+                dispatchPointer("pointerdown", touch, event.target);
+                activeTouches.set(touch.identifier, event.target);
+            }
+        }, { capture: true, passive: true });
+
+        window.addEventListener("touchend", event => {
+            for (const touch of event.changedTouches) {
+                const target = activeTouches.get(touch.identifier) || event.target;
+                dispatchPointer("pointerup", touch, target);
+                activeTouches.delete(touch.identifier);
+            }
+        }, { capture: true, passive: true });
+
+        window.addEventListener("touchcancel", event => {
+            for (const touch of event.changedTouches) {
+                activeTouches.delete(touch.identifier);
+            }
+        }, { capture: true, passive: true });
+    })();
+</script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/CoreScripts/Ripped-games@main/sadsatan/scripts/offlineclient.js"></script>
+<script type="module" src="https://cdn.jsdelivr.net/gh/CoreScripts/Ripped-games@main/sadsatan/scripts/main.js"></script>
+</body>
+</html>
