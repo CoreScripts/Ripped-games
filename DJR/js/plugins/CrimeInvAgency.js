@@ -102,19 +102,25 @@
         }
     };
 
+    // Decided from engine state rather than Error.stack: Safari/WebKit does not
+    // include function names in stack traces, which made every in-game gold
+    // change look unauthorized on iOS.
     Game_Party.prototype.isAuthorizedGoldChange = function() {
-        var stack = new Error().stack || "";
-        var isAuthorized = (
-            stack.includes("Game_Interpreter") ||
-            stack.includes("Game_Event") ||
-            stack.includes("Window_ShopBuy") ||
-            stack.includes("Game_Enemy") ||
-            stack.includes("Game_Troop") ||
-            stack.includes("BO_CustomShop") ||
-            $gameSystem._isProcessingShopPurchase
-        );
-        if (enableDebugLogs) console.log("Gold change authorization check: " + isAuthorized + ", Stack: " + stack);
-        return isAuthorized;
+        if ($gameSystem && $gameSystem._isProcessingShopPurchase) return true;
+        var scene = typeof SceneManager !== 'undefined' ? SceneManager._scene : null;
+        if (scene && ((typeof Scene_Battle !== 'undefined' && scene instanceof Scene_Battle) ||
+                      (typeof Scene_Shop !== 'undefined' && scene instanceof Scene_Shop))) {
+            return true;
+        }
+        if (typeof $gameMap !== 'undefined' && $gameMap) {
+            var interpreter = $gameMap._interpreter;
+            while (interpreter) {
+                if (interpreter.isRunning && interpreter.isRunning()) return true;
+                interpreter = interpreter._childInterpreter;
+            }
+        }
+        if (enableDebugLogs) console.log("Gold change is not from an event, shop or battle.");
+        return false;
     };
 
     Game_Party.prototype.logGoldTransaction = function(amount) {
