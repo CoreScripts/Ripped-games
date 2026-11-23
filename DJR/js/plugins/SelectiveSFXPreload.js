@@ -34,8 +34,6 @@
     function preloadSpecificSFX() {
         if (sfxToCache.length === 0) return;
 
-        console.log("Selective SFX Preload: Starting for " + sfxToCache.length + " files.");
-
         sfxToCache.forEach(function(sfxName) {
             var audio = { name: sfxName, volume: 0, pitch: 100, pan: 0 };
             try {

@@ -753,7 +753,7 @@ Bitmap._reuseImages = [];
 
 Bitmap.prototype._createCanvas = function(width, height){
     this.__canvas = this.__canvas || document.createElement('canvas');
-    this.__context = this.__canvas.getContext('2d');
+    this.__context = this.__canvas.getContext('2d', { willReadFrequently: true });
 
     this.__canvas.width = Math.max(width || 0, 1);
     this.__canvas.height = Math.max(height || 0, 1);
@@ -1332,6 +1332,7 @@ Bitmap.prototype.drawText = function(text, x, y, maxWidth, lineHeight, align) {
     // Note: Firefox has a bug with textBaseline: Bug 737852
     //       So we use 'alphabetic' here.
     if (text !== undefined) {
+        align = align || 'left';
         var tx = x;
         var ty = y + lineHeight - (lineHeight - this.fontSize * 0.7) / 2;
         var context = this._context;
@@ -2406,7 +2407,7 @@ Graphics._testCanvasBlendModes = function() {
     canvas = document.createElement('canvas');
     canvas.width = 1;
     canvas.height = 1;
-    context = canvas.getContext('2d');
+    context = canvas.getContext('2d', { willReadFrequently: true });
     context.globalCompositeOperation = 'source-over';
     context.fillStyle = 'white';
     context.fillRect(0, 0, 1, 1);

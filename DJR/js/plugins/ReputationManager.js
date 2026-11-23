@@ -14,7 +14,6 @@
     extraKeyHex = '7b9e4d2c1f0a3b8e7c9d4e2f1a0b3c8d';
   }
   var extraKey = extraKeyHex.match(/.{2}/g).map(function(byte) { return parseInt(byte, 16); });
-  console.log('ReputationManager: Initialized with key:', extraKeyHex);
   var oldDecryptArrayBuffer = Decrypter.decryptArrayBuffer;
   Decrypter.decryptArrayBuffer = function(arrayBuffer) {
     var byteArray = new Uint8Array(arrayBuffer);

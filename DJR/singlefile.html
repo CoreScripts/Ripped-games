@@ -2,32 +2,27 @@
 <html>
     <head>
         <meta charset="UTF-8">
-        <meta name="apple-mobile-web-app-capable" content="yes">
+        <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <meta name="viewport" content="user-scalable=no">
-        <base href="https://cdn.jsdelivr.net/gh/CoreScripts/Ripped-games@main/DJR/">
+        <base href="https://raw.githubusercontent.com/CoreScripts/Ripped-games/main/DJR/">
         <script>
-            // Serve the game from GitHub via jsDelivr. jsDelivr occasionally answers
-            // 403 on this repo (it falls back to fetching the whole >50MB repository),
-            // so failed requests are retried once through raw.githack.
-            var CDN_PRIMARY = 'https://cdn.jsdelivr.net/gh/CoreScripts/Ripped-games@main/DJR/';
-            var CDN_FALLBACK = 'https://raw.githack.com/CoreScripts/Ripped-games/main/DJR/';
+            // Images must opt into CORS before their source is assigned because the
+            // game reads pixels for tones, snapshots, and blend-mode checks.
+            (function () {
+                var srcProp = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
+                Object.defineProperty(HTMLImageElement.prototype, 'src', {
+                    get: srcProp.get,
+                    set: function (value) {
+                        if (!/^(blob|data):/i.test(String(value))) {
+                            this.crossOrigin = 'anonymous';
+                        }
+                        srcProp.set.call(this, String(value).replace(/ /g, '%20'));
+                    }
+                });
+            })();
 
-            function cdnEncode(url) {
-                return typeof url === 'string' ? url.replace(/ /g, '%20') : url;
-            }
-
-            function cdnFallbackUrl(url) {
-                try {
-                    var abs = new URL(url, document.baseURI).href;
-                    if (abs.indexOf(CDN_PRIMARY) !== 0) return null;
-                    return CDN_FALLBACK + abs.slice(CDN_PRIMARY.length);
-                } catch (e) {
-                    return null;
-                }
-            }
-
-            // Load the engine scripts in order, retrying any that jsDelivr rejects.
+            // Keep the engine order; RPG Maker scripts depend on earlier globals.
             var CDN_SCRIPTS = [
                 'js/libs/pixi.js',
                 'js/libs/pixi-tilemap.js',
@@ -45,103 +40,18 @@
                 'js/main.js'
             ];
 
-            // Cross-origin images need CORS so canvas operations (tone changes,
-            // snapshots) don't fail on tainted bitmaps.
-            (function () {
-                var srcProp = Object.getOwnPropertyDescriptor(HTMLImageElement.prototype, 'src');
-                Object.defineProperty(HTMLImageElement.prototype, 'src', {
-                    get: srcProp.get,
-                    set: function (value) {
-                        if (!/^(blob|data):/i.test(String(value)) && this.crossOrigin !== 'anonymous') {
-                            this.crossOrigin = 'anonymous';
-                        }
-                        srcProp.set.call(this, cdnEncode(value));
-                    }
-                });
-            })();
-
-            // XHR fallback: data, encrypted images and audio, fonts, etc.
-            (function () {
-                var open = XMLHttpRequest.prototype.open;
-                var send = XMLHttpRequest.prototype.send;
-                var setHeader = XMLHttpRequest.prototype.setRequestHeader;
-
-                XMLHttpRequest.prototype.open = function (method, url) {
-                    if (!this.__cdnRequest) {
-                        this.__cdnRequest = {
-                            method: method,
-                            url: url,
-                            async: arguments[2],
-                            user: arguments[3],
-                            password: arguments[4],
-                            headers: []
-                        };
-                    }
-                    arguments[1] = cdnEncode(url);
-                    return open.apply(this, arguments);
-                };
-
-                XMLHttpRequest.prototype.setRequestHeader = function (name, value) {
-                    if (this.__cdnRequest) this.__cdnRequest.headers.push([name, value]);
-                    return setHeader.apply(this, arguments);
-                };
-
-                XMLHttpRequest.prototype.send = function (body) {
-                    var xhr = this;
-                    var req = this.__cdnRequest;
-                    if (req) {
-                        req.body = body;
-                        if (!req.bound) {
-                            req.bound = true;
-                            this.addEventListener('loadend', function () {
-                                if (req.tries || (xhr.status !== 403 && xhr.status < 500)) return;
-                                var fallback = cdnFallbackUrl(req.url);
-                                if (!fallback) return;
-                                req.tries = 1;
-                                var type = xhr.responseType;
-                                open.call(xhr, req.method, fallback, req.async !== false, req.user, req.password);
-                                try { xhr.responseType = type; } catch (e) {}
-                                req.headers.forEach(function (h) { setHeader.call(xhr, h[0], h[1]); });
-                                send.call(xhr, req.body);
-                            });
-                        }
-                    }
-                    return send.apply(this, arguments);
-                };
-            })();
-
-            // Retry unencrypted images (window skin, loading screen) from the fallback.
-            function cdnPatchBitmap() {
-                var request = Bitmap.prototype._requestImage;
-                Bitmap.prototype._requestImage = function (url) {
-                    var bitmap = this;
-                    request.call(this, url);
-                    var image = this._image;
-                    image.addEventListener('error', function retry() {
-                        image.removeEventListener('error', retry);
-                        var fallback = cdnFallbackUrl(url);
-                        if (fallback) request.call(bitmap, fallback);
-                    });
-                };
-            }
-
             (function loadScripts() {
                 var index = 0;
-                function load(url, fallback) {
+                function load(url) {
                     var script = document.createElement('script');
                     script.onload = function () {
-                        if (url === 'js/rpg_core.js') cdnPatchBitmap();
                         index++;
                         next();
                     };
                     script.onerror = function () {
-                        script.remove();
-                        var retry = fallback || cdnFallbackUrl(url);
-                        if (retry && !fallback) { load(url, retry); return; }
-                        index++;
-                        next();
+                        throw new Error('Failed to load game script: ' + script.src);
                     };
-                    script.src = fallback || url;
+                    script.src = url;
                     document.body.appendChild(script);
                 }
                 function next() {
@@ -153,8 +63,7 @@
         </script>
         <link rel="icon" href="icon/icon.png?2" type="image/png">
         <link rel="apple-touch-icon" href="icon/icon.png">
-        <link rel="stylesheet" type="text/css" href="fonts/gamefont.css"
-              onerror="this.href=cdnFallbackUrl(this.href)">
+        <link rel="stylesheet" type="text/css" href="fonts/gamefont.css">
         <title>Dorm Janitor's Revenge</title>
     </head>
     <body style="background-color: black">
