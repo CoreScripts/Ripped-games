@@ -5,7 +5,7 @@
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
         <meta name="viewport" content="user-scalable=no">
-        <base href="https://raw.githubusercontent.com/CoreScripts/Ripped-games/main/DJR/">
+        <base href="https://cdn.jsdelivr.net/gh/CoreScripts/Ripped-games@main/DJR/">
         <script>
             // Images must opt into CORS before their source is assigned because the
             // game reads pixels for tones, snapshots, and blend-mode checks.
@@ -20,6 +20,44 @@
                         srcProp.set.call(this, String(value).replace(/ /g, '%20'));
                     }
                 });
+            })();
+
+            var CDN_BASE = 'https://cdn.jsdelivr.net/gh/CoreScripts/Ripped-games@main/DJR/';
+            var RAW_BASE = 'https://raw.githubusercontent.com/CoreScripts/Ripped-games/main/DJR/';
+
+            // jsDelivr can reject encrypted game resources intermittently. Raw GitHub
+            // serves those binary files reliably, while JavaScript stays on jsDelivr.
+            (function () {
+                var open = XMLHttpRequest.prototype.open;
+                XMLHttpRequest.prototype.open = function (method, url) {
+                    var absolute = new URL(url, document.baseURI).href;
+                    if (/\.rpgmv[omap]$/i.test(absolute) && absolute.indexOf(CDN_BASE) === 0) {
+                        arguments[1] = RAW_BASE + absolute.slice(CDN_BASE.length);
+                    }
+                    return open.apply(this, arguments);
+                };
+            })();
+
+            // The published RPG Maker engine predates this canvas hint.
+            (function () {
+                var getContext = HTMLCanvasElement.prototype.getContext;
+                HTMLCanvasElement.prototype.getContext = function (type, options) {
+                    if (type === '2d') {
+                        options = options || {};
+                        options.willReadFrequently = true;
+                    }
+                    return getContext.call(this, type, options);
+                };
+            })();
+
+            // These startup messages are diagnostics, not game errors.
+            (function () {
+                var log = console.log;
+                console.log = function () {
+                    var message = String(arguments[0] || '');
+                    if (/^(ReputationManager: Initialized|Selective SFX Preload: Starting|\s*PixiJS )/.test(message)) return;
+                    log.apply(console, arguments);
+                };
             })();
 
             // Keep the engine order; RPG Maker scripts depend on earlier globals.
@@ -45,6 +83,13 @@
                 function load(url) {
                     var script = document.createElement('script');
                     script.onload = function () {
+                        if (url === 'js/rpg_core.js') {
+                            var drawText = Bitmap.prototype.drawText;
+                            Bitmap.prototype.drawText = function () {
+                                if (!arguments[5]) arguments[5] = 'left';
+                                return drawText.apply(this, arguments);
+                            };
+                        }
                         index++;
                         next();
                     };
